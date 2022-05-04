@@ -64,11 +64,12 @@ public class SectionService {
 
     /**
      * Verify if Section exists and if haves enough space for store InboundOrder.
-     * @param sectionId receives a Long sectorId to indicate where it batchstock go.
+     * @param sectionId receives a Long sectionId to indicate where it batchstock go.
+     * @param warehouseId receives a Long warehouseId to indicate where it batchstock go.
      * @param batchStocks receives a List<BatchStock> to store inside section.
      */
-    public void validateBatchStocksBySection(Long sectorId, Long warehouseId, List<BatchStock> batchStocks) {
-        Section section = findById(sectorId);
+    public void validateBatchStocksBySection(Long sectionId, Long warehouseId, List<BatchStock> batchStocks) {
+        Section section = findById(sectionId);
 
         if(section.getWarehouse().getId() != warehouseId)
             throw new InboundOrderValidationException("SECTION_WAREHOUSE_DOES_NOT_MATCH");
