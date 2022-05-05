@@ -19,6 +19,13 @@ public class Warehouse {
 
     private String name;
 
+    @Embedded
+    private Address address;
+
     @OneToMany(mappedBy = "warehouse", cascade = CascadeType.ALL)
     private List<Section> sections;
+
+    public void setPlaceId(String placeId) {
+        this.address.setPlaceId(placeId);
+    }
 }
