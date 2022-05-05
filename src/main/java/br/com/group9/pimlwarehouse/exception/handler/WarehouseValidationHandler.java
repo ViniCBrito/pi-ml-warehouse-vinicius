@@ -3,6 +3,7 @@ package br.com.group9.pimlwarehouse.exception.handler;
 import br.com.group9.pimlwarehouse.dto.ErrorMessageDTO;
 import br.com.group9.pimlwarehouse.exception.AgentValidationException;
 import br.com.group9.pimlwarehouse.exception.BatchStockWithdrawException;
+import br.com.group9.pimlwarehouse.exception.InvalidAddressException;
 import br.com.group9.pimlwarehouse.exception.WarehouseNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,10 @@ public class WarehouseValidationHandler {
                 : exception.getMessage().concat("\nAPI:").concat(exception.getErrorMessage());
         ErrorMessageDTO error = new ErrorMessageDTO(message);
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(InvalidAddressException.class)
+    protected ResponseEntity<Object> handleInvalidAddressException(InvalidAddressException exception) {
+        ErrorMessageDTO error = new ErrorMessageDTO(exception.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 }
