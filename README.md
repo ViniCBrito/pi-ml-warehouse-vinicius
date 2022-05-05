@@ -33,7 +33,6 @@ Use the given Maven Wrapper and Docker to build a new service container
 
 ```bash
 ## 1. Clone project to local 
-
 git clone https://github.com/Grupo9-ITBootcampMeli/pi-ml-warehouse
 
 ## 2. Use Maven Wrapper to generate a new build  
