@@ -21,7 +21,7 @@ public class SectionProductServiceTest {
     }
 
     @Test
-    public void shouldReturnTrueIfProductIdIsAssociatedWithASection(){
+    public void shouldCountHowManyTimesCallProductIdIsAssociatedWithASection(){
         Section validSections =
                 Section.builder()
                         .id(1L)
