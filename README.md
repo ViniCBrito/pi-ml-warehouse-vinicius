@@ -4,7 +4,7 @@ Warehouse API is a REST API service to manage all warehouse needs in the project
 
 ## Endpoints
 
-See also the OpenAPI Specification (/swagger-ui.html) and the [Postman Collection]().
+See also the OpenAPI Specification (/swagger-ui.html while running).
 
 - Base API Port: 8083
 - Base Database Port: 5435
