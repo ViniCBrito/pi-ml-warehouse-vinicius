@@ -2,11 +2,10 @@ package br.com.group9.pimlwarehouse.controller;
 
 import br.com.group9.pimlwarehouse.dto.SectionDTO;
 import br.com.group9.pimlwarehouse.dto.SectionProductDTO;
-import br.com.group9.pimlwarehouse.dto.WarehouseDTO;
 import br.com.group9.pimlwarehouse.entity.Section;
-import br.com.group9.pimlwarehouse.entity.Warehouse;
 import br.com.group9.pimlwarehouse.service.SectionService;
-import br.com.group9.pimlwarehouse.service.WarehouseService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 
+@Api(value = "Section")
 @RestController
 public class SectionController extends APIController{
     private static final String BASE_PATH = "/section";
@@ -30,6 +30,7 @@ public class SectionController extends APIController{
      * @param uriBuilder Injection used by Spring to send the location.
      * @return URI of InboundOrder on header location, the entity response with status code "201-Created" and associate the product with a section.
      */
+    @ApiOperation(value = "Register a new association of a Product to a Section")
     @PostMapping(BASE_PATH + "/{sectionId}/product")
     public ResponseEntity<SectionDTO> associateProductToSection(
             @PathVariable(name = "sectionId") Long sectionId,
@@ -49,6 +50,7 @@ public class SectionController extends APIController{
      * @param sectionId get section Id
      * @return section of the informed ID
      */
+    @ApiOperation(value = "Find Section by ID")
     @GetMapping(BASE_PATH + "/{sectionId}")
     public ResponseEntity<SectionDTO> findSection(@PathVariable(name = "sectionId") Long sectionId) {
         Section foundSection = this.sectionService.findById(sectionId);

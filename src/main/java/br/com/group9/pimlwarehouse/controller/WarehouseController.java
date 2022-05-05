@@ -3,6 +3,8 @@ package br.com.group9.pimlwarehouse.controller;
 import br.com.group9.pimlwarehouse.dto.WarehouseDTO;
 import br.com.group9.pimlwarehouse.entity.Warehouse;
 import br.com.group9.pimlwarehouse.service.WarehouseService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -10,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 
+@Api(value = "Warehouse")
 @RestController
 public class WarehouseController extends APIController{
     private static final String BASE_PATH = "/warehouse";
@@ -26,7 +29,7 @@ public class WarehouseController extends APIController{
      * @return the URI of warehouse on header location, the entity response with status code "201-Created" and
      * the WarehouseDTO created as result
      */
-
+    @ApiOperation(value = "Register new Warehouse")
     @PostMapping(BASE_PATH)
     public ResponseEntity<WarehouseDTO> createWarehouse(@Valid @RequestBody WarehouseDTO warehouseDTO, UriComponentsBuilder uriBuilder) {
         Warehouse mappedWarehouse = warehouseDTO.map();
@@ -45,7 +48,7 @@ public class WarehouseController extends APIController{
      * @return the Warehouse registered with the id informed,
      * If there is no warehouse with the given id, it returns "WAREHOUSE_NOT_FOUND"
      */
-
+    @ApiOperation(value = "Find Warehouse by ID")
     @GetMapping(BASE_PATH + "/{warehouseId}")
     public ResponseEntity<WarehouseDTO> findWarehouse(@PathVariable(name = "warehouseId") Long warehouseId) {
         Warehouse foundWarehouse = this.warehouseService.findById(warehouseId);
