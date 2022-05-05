@@ -50,6 +50,7 @@ docker-compose build --no-cache && docker-compose up -d && docker rmi -f $(docke
 ```
 
 For full operation, it is necessary to have the [Gandalf](https://github.com/Grupo9-ITBootcampMeli/pi-ml-gandalf) and the [Products](https://github.com/Grupo9-ITBootcampMeli/pi-ml-products) services running with their default ports, hostnames in the same network.
+Also, Warehouse service is required for full operation of the [Cart](https://github.com/Grupo9-ITBootcampMeli/pi-ml-cart) service.
 
 ## Authors
 - [Amanda Zara](https://github.com/azfernandes)
