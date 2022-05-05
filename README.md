@@ -49,6 +49,8 @@ docker-compose build --no-cache && docker-compose up -d && docker rmi -f $(docke
 
 ```
 
+For full operation, it is necessary to have the [Gandalf](https://github.com/Grupo9-ITBootcampMeli/pi-ml-gandalf) and the [Products](https://github.com/Grupo9-ITBootcampMeli/pi-ml-products) services running with their default ports, hostnames in the same network.
+
 ## Authors
 - [Amanda Zara](https://github.com/azfernandes)
 - [André Veziane](https://github.com/andrevezi)
