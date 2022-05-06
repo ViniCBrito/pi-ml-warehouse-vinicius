@@ -86,7 +86,7 @@ public class BatchStockController extends APIController {
      * @param location optionally receives a placeId location to determinate the closest Warehouse.
      * @return the current quantity of stock after withdraw product.
      */
-    @ApiOperation(value = "Withdraw products from stock")
+    @ApiOperation(value = "Withdraw products from stock and optionally by closest location")
     @PostMapping("/fresh-products/")
     public ResponseEntity<List<BatchStockDTO>> withdrawStock(
             @RequestBody List<ProductBatchStockDTO> products,

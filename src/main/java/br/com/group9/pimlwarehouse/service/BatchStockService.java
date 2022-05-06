@@ -243,8 +243,10 @@ public class BatchStockService {
                         b -> b.getValue(),
                         (b, c) -> Stream.concat(b.stream(), c.stream()).collect(Collectors.toList())
                 ));
-        return quantityByProductMap.entrySet().stream().map(e ->
-                !validateStockQuantity(nearbyStockByProduct.get(e.getKey()), e.getValue())
+        return quantityByProductMap.entrySet().stream().map(e -> {
+                List<BatchStock> stocks = nearbyStockByProduct.get(e.getKey());
+                return stocks != null ? !validateStockQuantity(stocks, e.getValue()) : true;
+            }
         ).filter(e -> e).findAny().isEmpty()
                 ? nearbyStockByProduct
                 : new HashMap<>();
