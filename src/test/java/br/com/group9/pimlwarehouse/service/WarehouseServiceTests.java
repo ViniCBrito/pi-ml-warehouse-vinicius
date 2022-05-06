@@ -1,9 +1,6 @@
 package br.com.group9.pimlwarehouse.service;
 
-import br.com.group9.pimlwarehouse.entity.BatchStock;
-import br.com.group9.pimlwarehouse.entity.InboundOrder;
-import br.com.group9.pimlwarehouse.entity.Section;
-import br.com.group9.pimlwarehouse.entity.Warehouse;
+import br.com.group9.pimlwarehouse.entity.*;
 import br.com.group9.pimlwarehouse.enums.CategoryENUM;
 import br.com.group9.pimlwarehouse.repository.WarehouseRepository;
 import br.com.group9.pimlwarehouse.util.batch_stock_order.OrderBatchStockEnum;
@@ -24,12 +21,14 @@ public class WarehouseServiceTests {
     private WarehouseService warehouseService;
     private WarehouseRepository warehouseRepositoryMock;
     private BatchStockService batchStockServiceMock;
+    private PlacesAPIService placesAPIService;
 
     @BeforeEach
     public void setupTests() {
         warehouseRepositoryMock = Mockito.mock(WarehouseRepository.class);
         batchStockServiceMock = Mockito.mock(BatchStockService.class);
-        warehouseService = new WarehouseService(warehouseRepositoryMock, batchStockServiceMock);
+        placesAPIService = Mockito.mock(PlacesAPIService.class);
+        warehouseService = new WarehouseService(warehouseRepositoryMock, batchStockServiceMock, placesAPIService);
     }
 
     /**
@@ -57,14 +56,26 @@ public class WarehouseServiceTests {
                         .size(500)
                         .build()
         );
+        Address address = Address.builder()
+                .address("Test Street")
+                .addressNumber(123)
+                .addressComplement("")
+                .addressDistrict("Test District")
+                .postalCode("06020-012")
+                .city("São Paulo")
+                .state("SP")
+                .country("Brasil")
+                .build();
         Warehouse validWarehouse = Warehouse.builder()
                 .name("Warehouse Test 1")
                 .sections(validSections)
+                .address(address)
                 .build();
 
         Warehouse registeredWarehouse = Warehouse.builder()
                 .id(1L)
                 .name(validWarehouse.getName())
+                .address(address)
                 .build();
         List<Section> registeredSections = Arrays.asList(
                 Section.builder()
@@ -77,7 +88,8 @@ public class WarehouseServiceTests {
         );
         registeredWarehouse.setSections(registeredSections);
 
-
+        Mockito.when(placesAPIService.fetchPlaceIdByAddress(address))
+                .thenReturn("");
         Mockito.when(warehouseRepositoryMock.save(Mockito.any(Warehouse.class)))
                 .thenReturn(registeredWarehouse);
 
@@ -89,6 +101,7 @@ public class WarehouseServiceTests {
             Assertions.assertNotEquals(0, createdWarehouse.getSections().stream()
                     .filter(s -> s.getWarehouse() != null).collect(Collectors.toList()).size());
         });
+        Mockito.verify(placesAPIService, Mockito.times(1)).fetchPlaceIdByAddress(address);
     }
 
     @Test
@@ -111,14 +124,26 @@ public class WarehouseServiceTests {
                         .size(500)
                         .build()
         );
+        Address address = Address.builder()
+                .address("Test Street")
+                .addressNumber(123)
+                .addressComplement("")
+                .addressDistrict("Test District")
+                .postalCode("06020-012")
+                .city("São Paulo")
+                .state("SP")
+                .country("Brasil")
+                .build();
         Warehouse validWarehouse = Warehouse.builder()
                 .name("Warehouse Test 2")
                 .sections(validSections)
+                .address(address)
                 .build();
 
         Warehouse registeredWarehouse = Warehouse.builder()
                 .id(1L)
                 .name(validWarehouse.getName())
+                .address(address)
                 .build();
         List<Section> registeredSections = Arrays.asList(
                 Section.builder()
@@ -145,6 +170,8 @@ public class WarehouseServiceTests {
         );
         registeredWarehouse.setSections(registeredSections);
 
+        Mockito.when(placesAPIService.fetchPlaceIdByAddress(address))
+                .thenReturn("");
         Mockito.when(warehouseRepositoryMock.save(Mockito.any(Warehouse.class)))
                 .thenReturn(registeredWarehouse);
 
@@ -156,6 +183,7 @@ public class WarehouseServiceTests {
             Assertions.assertNotEquals(0, createdWarehouse.getSections().stream()
                     .filter(s -> s.getWarehouse() != null).collect(Collectors.toList()).size());
         });
+        Mockito.verify(placesAPIService, Mockito.times(1)).fetchPlaceIdByAddress(address);
     }
 
     /**
