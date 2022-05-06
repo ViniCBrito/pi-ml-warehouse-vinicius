@@ -83,12 +83,16 @@ public class BatchStockController extends APIController {
     /**
      * POST method to withdraw products from stock.
      * @param products receives a List<ProductBatchStockDTO> to withdraw.
+     * @param location optionally receives a placeId location to determinate the closest Warehouse.
      * @return the current quantity of stock after withdraw product.
      */
     @ApiOperation(value = "Withdraw products from stock")
     @PostMapping("/fresh-products/")
-    public ResponseEntity<List<BatchStockDTO>> withdrawStock(@RequestBody List<ProductBatchStockDTO> products) {
-        List<BatchStock> batchStocks = this.batchStockService.withdrawStockByProductId(ProductBatchStockDTO.convert(products));
+    public ResponseEntity<List<BatchStockDTO>> withdrawStock(
+            @RequestBody List<ProductBatchStockDTO> products,
+            @RequestParam(value = "location", required = false) String location
+    ) {
+        List<BatchStock> batchStocks = this.batchStockService.withdrawStockByProductId(ProductBatchStockDTO.convert(products), location);
         return ResponseEntity.ok(BatchStockDTO.convert(batchStocks));
     }
 }
