@@ -10,7 +10,7 @@
     </parent>
     <groupId>br.com.group9</groupId>
     <artifactId>pi-ml-warehouse</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>pi-ml-warehouse</name>
     <description>A warehouse service implementation.</description>
     <properties>
