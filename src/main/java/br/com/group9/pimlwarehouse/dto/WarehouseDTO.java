@@ -7,6 +7,7 @@ import lombok.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,9 @@ public class WarehouseDTO {
     @NotBlank(message = "Informar o nome do Armazém.")
     private String name;
 
+    @NotNull(message = "Informar o endereço do Armazém.")
+    private AddressDTO address;
+
     @Valid
     @NotEmpty(message = "Informar ao menos 1 Setor no Armazém.")
     @JsonIgnoreProperties({"allowedProducts"})
@@ -32,6 +36,7 @@ public class WarehouseDTO {
                 .id(this.id)
                 .name(this.name)
                 .sections(sections.stream().map(SectionDTO::map).collect(Collectors.toList()))
+                .address(address.map())
                 .build();
     }
 
@@ -42,6 +47,7 @@ public class WarehouseDTO {
                 .id(warehouse.getId())
                 .name(warehouse.getName())
                 .sections(sectionDTOS)
+                .address(AddressDTO.map(warehouse.getAddress()))
                 .build();
     }
 }

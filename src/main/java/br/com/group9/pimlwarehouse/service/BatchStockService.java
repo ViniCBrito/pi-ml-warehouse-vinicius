@@ -1,7 +1,9 @@
 package br.com.group9.pimlwarehouse.service;
 
+import br.com.group9.pimlwarehouse.dto.DistanceResponseElementDTO;
 import br.com.group9.pimlwarehouse.entity.BatchStock;
 import br.com.group9.pimlwarehouse.entity.InboundOrder;
+import br.com.group9.pimlwarehouse.entity.Warehouse;
 import br.com.group9.pimlwarehouse.exception.BatchStockWithdrawException;
 import br.com.group9.pimlwarehouse.exception.InboundOrderValidationException;
 import br.com.group9.pimlwarehouse.repository.BatchStockRepository;
@@ -9,13 +11,11 @@ import br.com.group9.pimlwarehouse.util.batch_stock_order.OrderByDueDate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.*;
+
 import br.com.group9.pimlwarehouse.entity.Section;
 import br.com.group9.pimlwarehouse.enums.CategoryENUM;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,14 +23,16 @@ import java.util.stream.Stream;
 public class BatchStockService {
     private BatchStockRepository batchStockRepository;
     private SectionService sectionService;
-
+    private DistanceMatrixAPIService distanceMatrixAPIService;
 
     public BatchStockService(
             BatchStockRepository batchStockRepository,
-            SectionService sectionService
+            SectionService sectionService,
+            DistanceMatrixAPIService distanceMatrixAPIService
     ) {
         this.batchStockRepository = batchStockRepository;
         this.sectionService = sectionService;
+        this.distanceMatrixAPIService = distanceMatrixAPIService;
     }
 
     /**
@@ -155,10 +157,9 @@ public class BatchStockService {
      * @param batchStocks receives a batch stock list.
      * @param checkoutQuantity receives the quantity of the product to validate.
      */
-    private void validateStockQuantity(List<BatchStock> batchStocks, Integer checkoutQuantity) {
+    private boolean validateStockQuantity(List<BatchStock> batchStocks, Integer checkoutQuantity) {
         Integer quantityInStock = batchStocks.stream().map(b -> b.getCurrentQuantity()).reduce(0, Integer::sum);
-        if(quantityInStock < checkoutQuantity)
-            throw new BatchStockWithdrawException("STOCK_QUANTITY_NOT_ENOUGH");
+        return quantityInStock >= checkoutQuantity;
     }
 
     /**
@@ -190,20 +191,88 @@ public class BatchStockService {
      */
 
 
-    public List<BatchStock> withdrawStockByProductId(Map<Long, Integer> quantityByProductMap) {
+    public List<BatchStock> withdrawStockByProductId(Map<Long, Integer> quantityByProductMap, String location) {
         Map<Long, List<BatchStock>> stockByProductMap = quantityByProductMap.entrySet()
                 .stream().map(quantityByProduct -> {
                     List<BatchStock> batchStocks = findByProductIdWithValidShelfLife(quantityByProduct.getKey());
-                    validateStockQuantity(batchStocks, quantityByProduct.getValue());
+                    if(!validateStockQuantity(batchStocks, quantityByProduct.getValue()))
+                        throw new BatchStockWithdrawException("STOCK_QUANTITY_NOT_ENOUGH");
                     return Map.entry(quantityByProduct.getKey(), batchStocks);
                 }).collect(Collectors.toMap(
                         Map.Entry::getKey, Map.Entry::getValue,(a, b) -> Stream.concat(a.stream(), b.stream())
                                 .collect(Collectors.toList())
                 ));
 
+        if(location != null) {
+            List<BatchStock> changedStocks = withdrawFromStockByLocation(location, stockByProductMap, quantityByProductMap);
+            if(changedStocks.size() > 0)
+                return changedStocks;
+        }
+
         return stockByProductMap.entrySet().stream().map(s ->
                 withdrawFromStock(s.getValue(), quantityByProductMap.get(s.getKey()))
         ).flatMap(List::stream).collect(Collectors.toList());
+    }
+
+    private Map<DistanceResponseElementDTO, Long> getWarehouseByDistance(String location, Map<Long, List<BatchStock>> stockByProductMap) {
+        Map<Long, String> destinations = stockByProductMap.values().stream()
+                .map(e -> e.stream()
+                        .map(b -> b.getInboundOrder().getSection().getWarehouse())
+                        .collect(Collectors.toMap(Warehouse::getId, w -> w.getAddress().getPlaceId(), (a, b) -> a))
+                ).flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(), (a, b) -> a));
+        Map<DistanceResponseElementDTO, Long> distances = this.distanceMatrixAPIService.fetchDistances(location, destinations);
+        return distances;
+    }
+
+    private Map<Long, List<BatchStock>> getInStockNearbyMap(
+            Long warehouseId,
+            Map<Long, List<BatchStock>> stockByProductMap,
+            Map<Long, Integer> quantityByProductMap) {
+        Map<Long, List<BatchStock>> nearbyStockByProduct = stockByProductMap.entrySet().stream().map(e ->
+                e.getValue().stream()
+                        .filter(b -> b.getInboundOrder().getSection().getWarehouse().getId() == warehouseId)
+                        .collect(Collectors.toMap(
+                                a -> e.getKey(),
+                                b -> Arrays.asList(b),
+                                (b, c) -> Stream.concat(b.stream(), c.stream()).collect(Collectors.toList())
+                        ))
+        ).flatMap(m -> m.entrySet().stream())
+                .collect(Collectors.toMap(
+                        a -> a.getKey(),
+                        b -> b.getValue(),
+                        (b, c) -> Stream.concat(b.stream(), c.stream()).collect(Collectors.toList())
+                ));
+        return quantityByProductMap.entrySet().stream().map(e -> {
+                List<BatchStock> stocks = nearbyStockByProduct.get(e.getKey());
+                return stocks != null ? !validateStockQuantity(stocks, e.getValue()) : true;
+            }
+        ).filter(e -> e).findAny().isEmpty()
+                ? nearbyStockByProduct
+                : new HashMap<>();
+    }
+
+    private List<BatchStock> withdrawFromStockByLocation(
+            String location, 
+            Map<Long, List<BatchStock>> stockByProductMap, 
+            Map<Long, Integer> quantityByProductMap) {
+        Map<DistanceResponseElementDTO, Long> distances = getWarehouseByDistance(location, stockByProductMap);
+        List<DistanceResponseElementDTO> minorDistance = distances.keySet().stream()
+            .sorted(Comparator.comparing(DistanceResponseElementDTO::getDistanceValue))
+            .collect(Collectors.toList());
+        Iterator<DistanceResponseElementDTO> iterator = minorDistance.iterator();
+        while(iterator.hasNext()){
+            Long warehouse = distances.get(iterator.next());
+
+            Map<Long, List<BatchStock>> nearbyStockByProduct = getInStockNearbyMap(warehouse, stockByProductMap, quantityByProductMap);
+
+            if(nearbyStockByProduct.size() > 0) {
+                return nearbyStockByProduct.entrySet().stream().map(s ->
+                        withdrawFromStock(s.getValue(), quantityByProductMap.get(s.getKey()))
+                ).flatMap(List::stream).collect(Collectors.toList());
+            }
+        }
+        return new ArrayList<>();
     }
 }
 

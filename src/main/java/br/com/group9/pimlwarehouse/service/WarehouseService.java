@@ -16,12 +16,13 @@ import java.util.stream.Collectors;
 @Service
 public class WarehouseService {
     private WarehouseRepository warehouseRepository;
-
     private BatchStockService batchStockService;
+    private PlacesAPIService placesAPIService;
 
-    public WarehouseService(WarehouseRepository warehouseRepository, BatchStockService batchStockService) {
+    public WarehouseService(WarehouseRepository warehouseRepository, BatchStockService batchStockService, PlacesAPIService placesAPIService) {
         this.warehouseRepository = warehouseRepository;
         this.batchStockService = batchStockService;
+        this.placesAPIService = placesAPIService;
     }
 
     /**
@@ -31,6 +32,8 @@ public class WarehouseService {
      */
     public Warehouse createWarehouse(Warehouse warehouse) {
         warehouse.getSections().forEach(s -> s.setWarehouse(warehouse));
+        String warehousePlaceId = this.placesAPIService.fetchPlaceIdByAddress(warehouse.getAddress());
+        warehouse.setPlaceId(warehousePlaceId);
         return warehouseRepository.save(warehouse);
     }
 

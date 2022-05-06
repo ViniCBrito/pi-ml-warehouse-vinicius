@@ -21,7 +21,7 @@ See also the OpenAPI Specification (/swagger-ui.html while running).
 | `GET` | `/api/v1/fresh-products/warehouse/{productId}` | Search for in-stock products by warehouses |
 | `GET` | `/api/v1/fresh-products/due-date` | Search for in-stock products based on due date |
 | `GET` | `/api/v1/fresh-products/list` | Search for all in-stock products with valid shelf life |
-| `POST` | `/api/v1/fresh-products/` | Withdraw products from stock |
+| `POST` | `/api/v1/fresh-products/` | Withdraw products from stock and optionally by closest location |
 
 ## Requirements
 
